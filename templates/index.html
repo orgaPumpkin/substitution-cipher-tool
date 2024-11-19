@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>substitution cipher tool</title>
+</head>
+<style>
+
+    .detext {
+        width: 40px;
+        height: 40px;
+        font-size: x-large;
+        text-align: center;
+        margin: 4px;
+        border-width: 0 0 3px 0;
+    }
+
+    .rawtext {
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        margin: 4px;
+    }
+
+    /* Style to create a horizontal list */
+    ul.horizontal-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        /*display: flex;*/
+        flex-wrap: wrap;
+    }
+
+    ul.horizontal-list li {
+        text-align: center;
+        vertical-align: top;
+        display: inline-block;
+    }
+
+</style>
+<body>
+    <textarea id="ciphertext" onchange="genCipher()" style="text-transform: lowercase"></textarea>
+    <ul class="horizontal-list" id="cipher-box"></ul>
+    <button onclick="addChar()">+</button>
+</body>
+</html>
+<script>
+
+    const en = 0
+    const de = 1
+
+    const cipherTextBox = document.getElementById("ciphertext")
+    const cipher_box = document.getElementById("cipher-box")
+
+    let cipher = []
+    let keys = {}
+
+    function genCipher() {
+        cipher = []
+        cipherTextBox.value = cipherTextBox.value.toLowerCase()
+        for (let i in cipherTextBox.value) {
+            cipher.push([cipherTextBox.value[i], ""])
+            keys[cipherTextBox.value[i]] = (cipherTextBox.value[i] in keys ? keys[cipherTextBox.value[i]] : "")
+        }
+        console.log(cipher)
+        showCipher()
+        updateCipher()
+    }
+
+    function createItem(i) {
+        if (!document.getElementById(i.toString())) {
+
+            const item = document.createElement("li")
+            item.id = i.toString()
+
+            const detext = document.createElement("input")
+            detext.type = "text"
+            detext.className = "detext"
+            detext.id = "de" + i.toString()
+            detext.maxLength = 2
+            detext.addEventListener("input", updateKey)
+            detext.value = cipher[i][de]
+
+
+            const rawtext = document.createElement("input")
+            rawtext.type = "text"
+            rawtext.className = "rawtext"
+            rawtext.id = "en" + i.toString()
+            rawtext.value = cipher[i][en]
+            rawtext.addEventListener("input", updateCipher)
+
+            if ((!cipher[i][en].match(/[a-z]/i)) && cipher[i][en] !== "") {
+                detext.disabled = true
+                detext.value = cipher[i][en]
+                detext.style.borderWidth = 0
+
+
+                if (cipher[i][en] === "\n") {
+                    rawtext.hidden = true
+                    item.hidden = true
+                    item.style.display = "block"
+                    cipher_box.appendChild(document.createElement("br"))
+                }
+            }
+
+            item.appendChild(detext)
+            item.appendChild(document.createElement("br"))
+            item.appendChild(rawtext)
+            cipher_box.appendChild(item)
+
+        } else {
+            console.log("edit")
+            const deC = document.getElementById("de"+i.toString())
+            const enC = document.getElementById("en"+i.toString())
+
+            if (deC.value !== cipher[i][de]) { deC.value = cipher[i][de] }
+            if (enC.value !== cipher[i][en]) { enC.value = cipher[i][en] }
+
+        }
+
+    }
+
+    function showCipher() {
+        let i;
+        for (i=0; i < cipher.length; i++) {
+            createItem(i)
+        }
+
+        while (!!document.getElementById(i.toString())) {
+            document.getElementById(i.toString()).remove()
+            i++
+        }
+
+    }
+
+    function addChar() {
+        cipher.push(["",""])
+        createItem(cipher.length-1)
+        updateCipher()
+        showCipher()
+    }
+
+    function getCipher() {
+        for (let i=0; i < cipher.length; i++) {
+            const enC = document.getElementById("en"+i.toString()).value
+            const deC = document.getElementById("de"+i.toString()).value
+
+            if (document.getElementById(i.toString()).hidden) {
+                cipher[i] = ["\n", "\n"]
+            } else {
+                cipher[i] = [enC, deC]
+            }
+        }
+    }
+
+    function updateCipher() {
+        getCipher()
+
+        let enCL = []
+
+        for (let i in cipher) {
+            if (cipher[i][en] !== "") {
+                enCL.push(cipher[i][en])
+                cipher[i][de] = (cipher[i][en] in keys ? keys[cipher[i][en]] : "")
+            }
+        }
+
+        // cleanup keys
+        const keysKeys = Object.keys(keys)
+        for (const i in keysKeys) {
+            if (!enCL.includes(keysKeys[i])) {
+                delete keys[keysKeys[i]]
+            }
+        }
+
+        showCipher()
+    }
+
+    function updateKey(event) {
+        const enC = document.getElementById("en"+event.target.id.slice(2))
+        const deC = document.getElementById(event.target.id)
+
+        const value = (event.data !== null ? event.data[event.data.length-1] : "")
+
+        keys[enC.value] = value
+        deC.value = value
+        updateCipher()
+
+        if (parseInt(event.target.id.slice(2))+1 !== cipher.length) {
+            document.getElementById("de" + (parseInt(event.target.id.slice(2)) + 1).toString()).focus()
+        }
+    }
+
+</script>
