@@ -42,7 +42,7 @@
 
     ul.horizontal-list li {
         text-align: center;
-        vertical-align: top;
+        vertical-align: center;
         display: inline-block;
     }
 
@@ -144,9 +144,7 @@
 
     function addChar() {
         cipher.push(["",""])
-        createItem(cipher.length-1)
         updateCipher()
-        showCipher()
     }
 
     function updateCipher() {
@@ -171,7 +169,8 @@
     }
 
     function updateValue(event) {
-        const enC = document.getElementById("en"+event.target.id.slice(2))
+        const i = parseInt(event.target.id.slice(2))
+        const enC = document.getElementById("en"+i)
         const deC = event.target
 
         const value = (event.data !== null ? event.data : "")
@@ -183,10 +182,30 @@
         cipher[parseInt(deC.id.slice(2))][DE] = value
         updateCipher()
 
-        // focus next
-        if (parseInt(event.target.id.slice(2))+1 !== cipher.length) {
-            document.getElementById("de" + (parseInt(deC.id.slice(2)) + 1)).focus()
+        // focus
+        let to_focus
+        if (value === "") {
+            if (i === 0)
+            {
+                to_focus = i
+            } else {
+                to_focus = i - 1
+            }
+        } else {
+            if (i === cipher.length-1) {
+                to_focus = i
+            } else {
+                to_focus = i + 1
+            }
         }
+
+        if (document.getElementById("de" + to_focus).disabled)
+        {
+            to_focus++
+        }
+
+        document.getElementById("de" + to_focus).focus()
+
     }
 
     function updateKey(event) {
