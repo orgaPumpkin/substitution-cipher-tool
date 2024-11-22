@@ -29,6 +29,15 @@
         padding: 0;
         /*display: flex;*/
         flex-wrap: wrap;
+        display: inline-block;
+    }
+
+    ul.word {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        /*display: flex;*/
+        display: inline-block;
     }
 
     ul.horizontal-list li {
@@ -39,7 +48,7 @@
 
 </style>
 <body>
-    <textarea id="ciphertext" onchange="genCipher()" style="text-transform: lowercase"></textarea>
+    <textarea id="ciphertext" oninput="genCipher()" style="text-transform: lowercase"></textarea><br>
     <ul class="horizontal-list" id="cipher-box"></ul>
     <button onclick="addChar()">+</button>
 </body>
@@ -66,14 +75,14 @@
         updateCipher()
     }
 
-    function createItem(i) {
+    function createItem(i, word) {
         const item = document.createElement("li")
         item.id = i.toString()
 
         const detext = document.createElement("input")
         detext.type = "text"
         detext.className = "detext"
-        detext.autocomplete = false
+        detext.autocomplete = "off"
         detext.id = "de" + i.toString()
         detext.maxLength = 2
         detext.addEventListener("input", updateValue)
@@ -83,7 +92,7 @@
         const rawtext = document.createElement("input")
         rawtext.type = "text"
         rawtext.className = "rawtext"
-        rawtext.autocomplete = false
+        rawtext.autocomplete = "off"
         rawtext.id = "en" + i.toString()
         rawtext.value = cipher[i][EN]
         rawtext.addEventListener("input", updateKey)
@@ -95,22 +104,41 @@
             if (cipher[i][EN] === "\n") {
                 rawtext.hidden = true
                 detext.hidden = true
-                item.style.display = "block"
-                cipher_box.appendChild(document.createElement("br"))
             }
         }
 
         item.appendChild(detext)
         item.appendChild(document.createElement("br"))
         item.appendChild(rawtext)
-        cipher_box.appendChild(item)
+        word.appendChild(item)
 
     }
 
     function showCipher() {
         cipher_box.innerHTML = ""
+        let item = document.createElement("li")
+        item.style.textAlign = "left"
+        let word = document.createElement("ul")
+        word.className = "word"
+        item.appendChild(word)
+        cipher_box.appendChild(item)
+
         for (let i=0; i < cipher.length; i++) {
-            createItem(i)
+            createItem(i, word)
+
+            if (cipher[i][EN] === "\n") {
+                cipher_box.appendChild(document.createElement("br"))
+            }
+
+            if ([" ","\n"].includes(cipher[i][EN]))
+            {
+                item = document.createElement("li")
+                item.style.textAlign = "left"
+                word = document.createElement("ul")
+                word.className = "word"
+                item.appendChild(word)
+                cipher_box.appendChild(item)
+            }
         }
     }
 
