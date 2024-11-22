@@ -46,8 +46,8 @@
 </html>
 <script>
 
-    const en = 0
-    const de = 1
+    const EN = 0
+    const DE = 1
 
     const cipherTextBox = document.getElementById("ciphertext")
     const cipher_box = document.getElementById("cipher-box")
@@ -62,75 +62,56 @@
             cipher.push([cipherTextBox.value[i], ""])
             keys[cipherTextBox.value[i]] = (cipherTextBox.value[i] in keys ? keys[cipherTextBox.value[i]] : "")
         }
-        console.log(cipher)
         showCipher()
         updateCipher()
     }
 
     function createItem(i) {
-        if (!document.getElementById(i.toString())) {
+        const item = document.createElement("li")
+        item.id = i.toString()
 
-            const item = document.createElement("li")
-            item.id = i.toString()
-
-            const detext = document.createElement("input")
-            detext.type = "text"
-            detext.className = "detext"
-            detext.id = "de" + i.toString()
-            detext.maxLength = 2
-            detext.addEventListener("input", updateKey)
-            detext.value = cipher[i][de]
-
-
-            const rawtext = document.createElement("input")
-            rawtext.type = "text"
-            rawtext.className = "rawtext"
-            rawtext.id = "en" + i.toString()
-            rawtext.value = cipher[i][en]
-            rawtext.addEventListener("input", updateCipher)
-
-            if ((!cipher[i][en].match(/[a-z]/i)) && cipher[i][en] !== "") {
-                detext.disabled = true
-                detext.value = cipher[i][en]
-                detext.style.borderWidth = 0
+        const detext = document.createElement("input")
+        detext.type = "text"
+        detext.className = "detext"
+        detext.autocomplete = false
+        detext.id = "de" + i.toString()
+        detext.maxLength = 2
+        detext.addEventListener("input", updateValue)
+        detext.value = cipher[i][DE]
 
 
-                if (cipher[i][en] === "\n") {
-                    rawtext.hidden = true
-                    item.hidden = true
-                    item.style.display = "block"
-                    cipher_box.appendChild(document.createElement("br"))
-                }
+        const rawtext = document.createElement("input")
+        rawtext.type = "text"
+        rawtext.className = "rawtext"
+        rawtext.autocomplete = false
+        rawtext.id = "en" + i.toString()
+        rawtext.value = cipher[i][EN]
+        rawtext.addEventListener("input", updateKey)
+
+        if ((!cipher[i][EN].match(/[a-z]/i)) && cipher[i][EN] !== "") {
+            detext.disabled = true
+            detext.value = cipher[i][EN]
+
+            if (cipher[i][EN] === "\n") {
+                rawtext.hidden = true
+                detext.hidden = true
+                item.style.display = "block"
+                cipher_box.appendChild(document.createElement("br"))
             }
-
-            item.appendChild(detext)
-            item.appendChild(document.createElement("br"))
-            item.appendChild(rawtext)
-            cipher_box.appendChild(item)
-
-        } else {
-            console.log("edit")
-            const deC = document.getElementById("de"+i.toString())
-            const enC = document.getElementById("en"+i.toString())
-
-            if (deC.value !== cipher[i][de]) { deC.value = cipher[i][de] }
-            if (enC.value !== cipher[i][en]) { enC.value = cipher[i][en] }
-
         }
+
+        item.appendChild(detext)
+        item.appendChild(document.createElement("br"))
+        item.appendChild(rawtext)
+        cipher_box.appendChild(item)
 
     }
 
     function showCipher() {
-        let i;
-        for (i=0; i < cipher.length; i++) {
+        cipher_box.innerHTML = ""
+        for (let i=0; i < cipher.length; i++) {
             createItem(i)
         }
-
-        while (!!document.getElementById(i.toString())) {
-            document.getElementById(i.toString()).remove()
-            i++
-        }
-
     }
 
     function addChar() {
@@ -140,28 +121,13 @@
         showCipher()
     }
 
-    function getCipher() {
-        for (let i=0; i < cipher.length; i++) {
-            const enC = document.getElementById("en"+i.toString()).value
-            const deC = document.getElementById("de"+i.toString()).value
-
-            if (document.getElementById(i.toString()).hidden) {
-                cipher[i] = ["\n", "\n"]
-            } else {
-                cipher[i] = [enC, deC]
-            }
-        }
-    }
-
     function updateCipher() {
-        getCipher()
-
         let enCL = []
 
         for (let i in cipher) {
-            if (cipher[i][en] !== "") {
-                enCL.push(cipher[i][en])
-                cipher[i][de] = (cipher[i][en] in keys ? keys[cipher[i][en]] : "")
+            if (cipher[i][EN] !== "") {
+                enCL.push(cipher[i][EN])
+                cipher[i][DE] = (cipher[i][EN] in keys ? keys[cipher[i][EN]] : "")
             }
         }
 
@@ -176,19 +142,46 @@
         showCipher()
     }
 
-    function updateKey(event) {
+    function updateValue(event) {
         const enC = document.getElementById("en"+event.target.id.slice(2))
-        const deC = document.getElementById(event.target.id)
+        const deC = event.target
 
-        const value = (event.data !== null ? event.data[event.data.length-1] : "")
+        const value = (event.data !== null ? event.data : "")
 
-        keys[enC.value] = value
-        deC.value = value
+        if (enC.value !== "") {
+            keys[enC.value] = value
+        }
+
+        cipher[parseInt(deC.id.slice(2))][DE] = value
         updateCipher()
 
+        // focus next
         if (parseInt(event.target.id.slice(2))+1 !== cipher.length) {
-            document.getElementById("de" + (parseInt(event.target.id.slice(2)) + 1).toString()).focus()
+            document.getElementById("de" + (parseInt(deC.id.slice(2)) + 1)).focus()
         }
+    }
+
+    function updateKey(event) {
+        const i = parseInt(event.target.id.slice(2))
+        const value = event.target.value
+
+        if (value === "")
+        {
+            cipher[i] = ["", ""]
+
+        } else {
+
+            if (!value in keys) {
+                keys[value] = ""
+            }
+            cipher[i] = [value, keys[value]]
+        }
+
+        updateCipher()
+
+        // refocus
+        document.getElementById("en" + i).focus()
+
     }
 
 </script>
