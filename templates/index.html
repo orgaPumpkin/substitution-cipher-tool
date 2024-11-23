@@ -72,7 +72,7 @@
         flex-wrap: wrap;
     }
 
-    li {
+    li.horizontal-list {
         text-align: center;
         /*vertical-align: center;*/
         display: inline-block;
@@ -96,10 +96,16 @@
 
 </style>
 <body>
-<br><br>
-<ul class="horizontal-list" id="cipher-box"></ul>
-<br>
-<button id="add" onclick="addChar()">+</button>
+<div style="float:left; width: 80%">
+    <br><br>
+    <ul class="horizontal-list" id="cipher-box"></ul>
+    <br>
+    <button id="add" onclick="addChar()">+</button>
+</div>
+<div style="float:right; margin-right: 5%">
+    <ul id="keys-box" style="list-style-type: none;"></ul>
+</div>
+
 </body>
 </html>
 <script>
@@ -108,6 +114,7 @@
     const DE = 1
 
     const cipher_box = document.getElementById("cipher-box")
+    const keys_box = document.getElementById("keys-box")
 
     let cipher = []
     let keys = {}
@@ -143,6 +150,7 @@
 
     function createItem(i, word) {
         const item = document.createElement("li")
+        item.className = "horizontal-list"
         item.id = i.toString()
 
         const detext = document.createElement("input")
@@ -192,6 +200,7 @@
 
     function showCipher() {
         cipher_box.innerHTML = ""
+
         let item = document.createElement("li")
         let word = document.createElement("ul")
         word.className = "word"
@@ -208,19 +217,69 @@
             if ([" ","\n"].includes(cipher[i][EN]))
             {
                 item = document.createElement("li")
+                item.className = "horizontal-list"
                 word = document.createElement("ul")
                 word.className = "word"
                 item.appendChild(word)
                 cipher_box.appendChild(item)
             }
         }
+
+        // show keys
+        keys_box.innerHTML = ""
+        const keysKeys = Object.keys(keys).toSorted()
+        for (const i in keysKeys) {
+            const keyI = document.createElement("li")
+            const rawtext = document.createElement("input")
+            rawtext.type = "text"
+            rawtext.className = "rawtext"
+            rawtext.disabled = true
+            rawtext.id = "ke" + i.toString()
+            rawtext.value = keysKeys[i]
+
+            const detext = document.createElement("input")
+            detext.type = "text"
+            detext.className = "detext"
+            detext.autocomplete = "off"
+            detext.id = "va" + i.toString()
+            detext.maxLength = 2
+            detext.value = keys[keysKeys[i]]
+            detext.addEventListener("mousedown", focusEnd);
+            detext.addEventListener("focus", highlight);
+            detext.addEventListener("focusout", removeHighlight);
+            detext.addEventListener("input", updateValue)
+            detext.addEventListener("keydown", keyPress)
+            detext.addEventListener("paste", e => e.preventDefault());
+
+            keyI.appendChild(rawtext)
+            const sep = document.createElement("p")
+            sep.innerText = ": "
+            sep.style.fontSize = "x-large"
+            sep.style.display = "inline-block"
+            sep.style.color = "white"
+            sep.style.margin = 0
+            keyI.appendChild(sep)
+            keyI.appendChild(detext)
+            keys_box.appendChild(keyI)
+
+        }
     }
 
     function updateCipher() {
-        let enCL = []
+        // clean Enter at start
+        while (cipher[0][EN] === "\n") {
+            // update cipher
+            if (cipher.length === 1) {
+                cipher = [["",""]]
+            } else {
+                cipher.splice(0, 1)
+            }
+        }
 
+
+        let enCL = []
         for (let i in cipher) {
-            if (cipher[i][EN] !== "") {
+            if (cipher[i][EN].match(/[a-z]/i)) {
                 enCL.push(cipher[i][EN])
 
                 if (cipher[i][EN] in keys) {
@@ -245,7 +304,8 @@
 
     function updateValue(event) {
         const i = parseInt(event.target.id.slice(2))
-        const enC = document.getElementById("en"+i)
+        const type = event.target.id.slice(0, 2)
+        const enC = document.getElementById((type === "de" ? "en" : "ke")+i)
         const deC = event.target
 
         const value = (event.data !== null ? event.data.toUpperCase() : "")
@@ -269,7 +329,7 @@
         //     to_focus = i
         // }
 
-        document.getElementById("de" + i).focus()
+        document.getElementById(type + i).focus()
 
     }
 
@@ -368,7 +428,8 @@
         focusEnd(event)
 
         const index = parseInt(event.target.id.slice(2))
-        const value = document.getElementById("en" + index).value
+        const type = event.target.id.slice(0, 2)
+        const value = document.getElementById((type === "de" ? "en" : "ke") + index).value
 
         if (value !== "") {
             for (let i in cipher) {
@@ -376,18 +437,33 @@
                     document.getElementById("de" + i).className = "detext highlight"
                 }
             }
+
+            const keysKeys = Object.keys(keys).toSorted()
+            for (let i in keysKeys) {
+                if (keysKeys[i] === value) {
+                    document.getElementById("va" + i).className = "detext highlight"
+                }
+            }
         }
 
-        document.getElementById("de" + index).className = "detext selected"
+        document.getElementById(type + index).className = "detext selected"
 
     }
     function removeHighlight(event) {
         const index = parseInt(event.target.id.slice(2))
-        const value = document.getElementById("en" + index).value
+        const type = event.target.id.slice(0, 2)
+        const value = document.getElementById((type === "de" ? "en" : "ke") + index).value
 
         for (let i in cipher) {
             if (cipher[i][EN] === value) {
                 document.getElementById("de" + i).className = "detext"
+            }
+        }
+
+        const keysKeys = Object.keys(keys).toSorted()
+        for (let i in keysKeys) {
+            if (keysKeys[i] === value) {
+                document.getElementById("va" + i).className = "detext"
             }
         }
     }
