@@ -8,6 +8,7 @@
 
     html,body {
         background-color: #1e1e1e;
+        text-align: center;
     }
 
     input.detext {
@@ -53,6 +54,7 @@
 
     /* Style to create a horizontal list */
     ul.horizontal-list {
+        width: 95%;
         list-style-type: none;
         margin: 0;
         padding: 0;
@@ -76,9 +78,28 @@
         display: inline-block;
     }
 
+    #add {
+        margin: 4px;
+        width: 40px;
+        height: 40px;
+        background-color: transparent;
+        border-color: transparent;
+        border-radius: 5px;
+        color: green;
+        font-size: 30px;
+        text-align: center;
+        vertical-align: center;
+    }
+    #add:hover {
+        color: springgreen;
+    }
+
 </style>
 <body>
-    <ul class="horizontal-list" id="cipher-box"></ul>
+<br><br>
+<ul class="horizontal-list" id="cipher-box"></ul>
+<br>
+<button id="add" onclick="addChar()">+</button>
 </body>
 </html>
 <script>
@@ -89,15 +110,22 @@
     const cipher_box = document.getElementById("cipher-box")
 
     let cipher = []
-    let keys = {"A":"B"}
+    let keys = {}
 
-    addCipher("A", 0)
+    cipher = [["",""]]
+    updateCipher();
 
     function addCipher(ciphertext, s) {
         for (let i in ciphertext) {
             cipher.splice(parseInt(i)+s, 0, [ciphertext[i], ""])
         }
         updateCipher()
+    }
+
+    function addChar() {
+        cipher.splice(cipher.length, 0, ['', ''])
+        updateCipher()
+        document.getElementById('en'+(cipher.length-1)).focus()
     }
 
     function rawPaste(event) {
@@ -124,11 +152,12 @@
         detext.id = "de" + i.toString()
         detext.maxLength = 2
         detext.value = cipher[i][DE]
-        detext.addEventListener('mousedown', focusEnd);
-        detext.addEventListener('focus', highlight);
-        detext.addEventListener('focusout', removeHighlight);
+        detext.addEventListener("mousedown", focusEnd);
+        detext.addEventListener("focus", highlight);
+        detext.addEventListener("focusout", removeHighlight);
         detext.addEventListener("input", updateValue)
-        detext.addEventListener("keydown", dePress)
+        detext.addEventListener("keydown", keyPress)
+        detext.addEventListener("paste", e => e.preventDefault());
 
 
         const rawtext = document.createElement("input")
@@ -140,7 +169,7 @@
         rawtext.addEventListener("mousedown", focusEnd)
         rawtext.addEventListener('focus', focusEnd);
         rawtext.addEventListener("input", updateKey)
-        rawtext.addEventListener("keydown", dePress)
+        rawtext.addEventListener("keydown", keyPress)
         rawtext.addEventListener("paste", rawPaste)
 
         if ((!cipher[i][EN].match(/[a-z]/i)) && cipher[i][EN] !== "") {
@@ -164,7 +193,6 @@
     function showCipher() {
         cipher_box.innerHTML = ""
         let item = document.createElement("li")
-        item.style.textAlign = "left"
         let word = document.createElement("ul")
         word.className = "word"
         item.appendChild(word)
@@ -180,7 +208,6 @@
             if ([" ","\n"].includes(cipher[i][EN]))
             {
                 item = document.createElement("li")
-                item.style.textAlign = "left"
                 word = document.createElement("ul")
                 word.className = "word"
                 item.appendChild(word)
@@ -270,7 +297,7 @@
 
     }
 
-    function dePress(event) {
+    function keyPress(event) {
         const type = event.target.id.slice(0,2)
         const i = parseInt(event.target.id.slice(2))
         // console.log(event.key)
@@ -287,6 +314,17 @@
             document.getElementById("en" + i).focus()
         } else if (event.key === "ArrowUp" && type === "en") {
             document.getElementById("de" + i).focus()
+
+        } else if (event.key === "Enter" && type === "en" && event.target.value === "") {
+            cipher[i][EN] = "\n"
+            updateCipher()
+
+        } else if (event.key === "Delete" && type === "en") {
+            if (cipher.length !== 1) {
+                cipher.splice(i, 1)
+                updateCipher()
+                document.getElementById("en" + findPrev(i)).focus()
+            }
         }
     }
 
