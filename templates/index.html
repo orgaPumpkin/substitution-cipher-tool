@@ -12,18 +12,21 @@
     }
 
     input.detext {
+        box-sizing: border-box;
+        vert-align: top;
         background-color: transparent;
         color: white;
-        width: 40px;
+        width: 35px;
         height: 40px;
         font-weight: bold;
         font-size: x-large;
         text-align: center;
         margin: 4px;
-        border-width: 0 0 4px 0;
+        border-width: 0;
+        border-bottom-width: 4px;
+        border-collapse: collapse;
         border-color: white;
         caret-color: transparent;
-
     }
     input.detext:focus {
         outline: none;
@@ -32,12 +35,12 @@
     input.detext.highlight {
         border-color: dodgerblue;
         border-bottom-width: 6px;
-        height: 38px;
+        /*height: 38px;*/
     }
     input.detext.selected {
         border-color: limegreen;
-        border-bottom-width: 7px;
-        height: 37px;
+        border-bottom-width: 8px;
+        /*height: 37px;*/
     }
 
     input.rawtext {
@@ -310,11 +313,17 @@
 
         const value = (event.data !== null ? event.data.toUpperCase() : "")
 
-        if (enC.value !== "") {
-            keys[enC.value] = value
+        if (enC.value === "") {
+            cipher[i][DE] = value
+        } else {
+            const values = Object.values(keys)
+            if (!values.includes(value) || value === "") {
+                cipher[i][DE] = value
+                keys[enC.value] = value
+                // TODO: error message popup
+            }
         }
 
-        cipher[parseInt(deC.id.slice(2))][DE] = value
         updateCipher()
 
         // focus
@@ -330,7 +339,6 @@
         // }
 
         document.getElementById(type + i).focus()
-
     }
 
     function updateKey(event) {
@@ -340,7 +348,7 @@
 
         if (value === "")
         {
-            cipher[i] = ["", ""]
+            cipher[i][EN] = ""
 
         } else {
 
@@ -363,11 +371,11 @@
         // console.log(event.key)
 
         if ((event.key === "ArrowLeft") && i !== 0) {
-            const focus = findPrev(i)
+            const focus = findPrev(i, (type !== "va"))
             document.getElementById(type + (focus)).focus()
 
         } else if (event.key === "ArrowRight" && i !== cipher.length-1) {
-            const focus = findNext(i)
+            const focus = findNext(i, (type !== "va"))
             document.getElementById(type + (focus)).focus()
 
         } else if (event.key === "ArrowDown" && type === "de") {
@@ -388,27 +396,32 @@
         }
     }
 
-    function findPrev (i) {
+    function findPrev (i, checkEnabled) {
         if (i === 0) {
             return 0;
         } else {
 
             let result = i - 1
-            while (result !== 0 && document.getElementById("de" + result).disabled) {
-                result--
+
+            if (checkEnabled) {
+                while (result !== 0 && document.getElementById("de" + result).disabled) {
+                    result--
+                }
             }
 
             return result
         }
     }
-    function findNext (i) {
+    function findNext (i, checkEnabled) {
         if (i === cipher.length-1) {
             return i;
         } else {
 
             let result = i + 1
-            while (result !== cipher.length-1 && document.getElementById("de" + result).disabled) {
-                result++
+            if (checkEnabled) {
+                while (result !== cipher.length - 1 && document.getElementById("de" + result).disabled) {
+                    result++
+                }
             }
 
             return result
