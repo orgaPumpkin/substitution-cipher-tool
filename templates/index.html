@@ -6,22 +6,49 @@
 </head>
 <style>
 
+    html,body {
+        background-color: #1e1e1e;
+    }
+
     input.detext {
+        background-color: transparent;
+        color: white;
         width: 40px;
         height: 40px;
+        font-weight: bold;
         font-size: x-large;
         text-align: center;
         margin: 4px;
-        border-width: 0 0 3px 0;
+        border-width: 0 0 4px 0;
+        border-color: white;
         caret-color: transparent;
+
+    }
+    input.detext:focus {
+        outline: none;
+    }
+
+    input.detext.highlight {
+        border-color: dodgerblue;
+        border-bottom-width: 6px;
+        height: 38px;
+    }
+    input.detext.selected {
+        border-color: limegreen;
+        border-bottom-width: 6px;
+        height: 38px;
     }
 
     input.rawtext {
-        width: 25px;
-        height: 25px;
+        background-color: transparent;
+        color: lightgray;
+        width: 35px;
+        height: 35px;
         text-align: center;
+        font-size: large;
         margin: 4px;
         caret-color: transparent;
+        border-width: 0;
     }
 
     /* Style to create a horizontal list */
@@ -31,8 +58,8 @@
         padding: 0;
         display: inline-block;
         flex-wrap: wrap;
-        text-align: left;
-        vertical-align: center;
+        text-align: center;
+        /*vertical-align: center;*/
     }
 
     ul.word {
@@ -45,7 +72,7 @@
 
     li {
         text-align: center;
-        vertical-align: center;
+        /*vertical-align: center;*/
         display: inline-block;
     }
 
@@ -53,7 +80,6 @@
 <body>
     <textarea id="ciphertext" oninput="genCipher()" style="text-transform: lowercase"></textarea><br>
     <ul class="horizontal-list" id="cipher-box"></ul>
-    <button onclick="addChar()">+</button>
 </body>
 </html>
 <script>
@@ -90,7 +116,8 @@
         detext.maxLength = 2
         detext.value = cipher[i][DE]
         detext.addEventListener('mousedown', focusEnd);
-        detext.addEventListener('focus', focusEnd);
+        detext.addEventListener('focus', highlight);
+        detext.addEventListener('focusout', removeHighlight);
         detext.addEventListener("input", updateValue)
         detext.addEventListener("keydown", dePress)
 
@@ -108,6 +135,7 @@
 
         if ((!cipher[i][EN].match(/[a-z]/i)) && cipher[i][EN] !== "") {
             detext.disabled = true
+            detext.style.borderColor = "transparent"
             detext.value = cipher[i][EN]
 
             if (cipher[i][EN] === "\n") {
@@ -284,6 +312,34 @@
             event.target.value = "";
             event.target.value = temp;
         }, 0);
+    }
+
+    function highlight(event) {
+        focusEnd(event)
+
+        const index = parseInt(event.target.id.slice(2))
+        const value = document.getElementById("en" + index).value
+
+        if (value !== "") {
+            for (let i in cipher) {
+                if (cipher[i][EN] === value) {
+                    document.getElementById("de" + i).className = "detext highlight"
+                }
+            }
+        }
+
+        document.getElementById("de" + index).className = "detext selected"
+
+    }
+    function removeHighlight(event) {
+        const index = parseInt(event.target.id.slice(2))
+        const value = document.getElementById("en" + index).value
+
+        for (let i in cipher) {
+            if (cipher[i][EN] === value) {
+                document.getElementById("de" + i).className = "detext"
+            }
+        }
     }
 
 </script>
