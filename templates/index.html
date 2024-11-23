@@ -35,8 +35,8 @@
     }
     input.detext.selected {
         border-color: limegreen;
-        border-bottom-width: 6px;
-        height: 38px;
+        border-bottom-width: 7px;
+        height: 37px;
     }
 
     input.rawtext {
@@ -78,7 +78,6 @@
 
 </style>
 <body>
-    <textarea id="ciphertext" oninput="genCipher()" style="text-transform: lowercase"></textarea><br>
     <ul class="horizontal-list" id="cipher-box"></ul>
 </body>
 </html>
@@ -87,21 +86,31 @@
     const EN = 0
     const DE = 1
 
-    const cipherTextBox = document.getElementById("ciphertext")
     const cipher_box = document.getElementById("cipher-box")
 
     let cipher = []
-    let keys = {}
+    let keys = {"A":"B"}
 
-    function genCipher() {
-        cipher = []
-        cipherTextBox.value = cipherTextBox.value.toLowerCase()
-        for (let i in cipherTextBox.value) {
-            cipher.push([cipherTextBox.value[i], ""])
-            keys[cipherTextBox.value[i]] = (cipherTextBox.value[i] in keys ? keys[cipherTextBox.value[i]] : "")
+    addCipher("A", 0)
+
+    function addCipher(ciphertext, s) {
+        for (let i in ciphertext) {
+            cipher.splice(parseInt(i)+s, 0, [ciphertext[i], ""])
         }
-        showCipher()
         updateCipher()
+    }
+
+    function rawPaste(event) {
+        const text = (event.clipboardData || window.clipboardData).getData("text").toUpperCase();
+        const i = parseInt(event.target.id.slice(2))
+
+        if (cipher[i][EN] === "") {
+            cipher.splice(i, 1)
+            addCipher(text, i)
+        } else {
+            addCipher(text, i+1)
+        }
+
     }
 
     function createItem(i, word) {
@@ -132,6 +141,7 @@
         rawtext.addEventListener('focus', focusEnd);
         rawtext.addEventListener("input", updateKey)
         rawtext.addEventListener("keydown", dePress)
+        rawtext.addEventListener("paste", rawPaste)
 
         if ((!cipher[i][EN].match(/[a-z]/i)) && cipher[i][EN] !== "") {
             detext.disabled = true
@@ -179,18 +189,19 @@
         }
     }
 
-    function addChar() {
-        cipher.push(["",""])
-        updateCipher()
-    }
-
     function updateCipher() {
         let enCL = []
 
         for (let i in cipher) {
             if (cipher[i][EN] !== "") {
                 enCL.push(cipher[i][EN])
-                cipher[i][DE] = (cipher[i][EN] in keys ? keys[cipher[i][EN]] : "")
+
+                if (cipher[i][EN] in keys) {
+                    cipher[i][DE] = keys[cipher[i][EN]]
+                } else {
+                    keys[cipher[i][EN]] = ""
+                    cipher[i][DE] = ""
+                }
             }
         }
 
@@ -210,7 +221,7 @@
         const enC = document.getElementById("en"+i)
         const deC = event.target
 
-        const value = (event.data !== null ? event.data : "")
+        const value = (event.data !== null ? event.data.toUpperCase() : "")
 
         if (enC.value !== "") {
             keys[enC.value] = value
@@ -220,23 +231,24 @@
         updateCipher()
 
         // focus
-        let to_focus
-        if (value !== "") {
-            if (i === cipher.length-1) {
-                to_focus = i
-            } else {
-                to_focus = findNext(i)
-            }
-        } else {
-            to_focus = i
-        }
+        // let to_focus
+        // if (value !== "") {
+        //     if (i === cipher.length-1) {
+        //         to_focus = i
+        //     } else {
+        //         to_focus = findNext(i)
+        //     }
+        // } else {
+        //     to_focus = i
+        // }
 
-        document.getElementById("de" + to_focus).focus()
+        document.getElementById("de" + i).focus()
 
     }
 
     function updateKey(event) {
         const i = parseInt(event.target.id.slice(2))
+        event.target.value = event.target.value.toUpperCase()
         const value = event.target.value
 
         if (value === "")
