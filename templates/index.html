@@ -6,20 +6,22 @@
 </head>
 <style>
 
-    .detext {
+    input.detext {
         width: 40px;
         height: 40px;
         font-size: x-large;
         text-align: center;
         margin: 4px;
         border-width: 0 0 3px 0;
+        caret-color: transparent;
     }
 
-    .rawtext {
-        width: 30px;
-        height: 30px;
+    input.rawtext {
+        width: 25px;
+        height: 25px;
         text-align: center;
         margin: 4px;
+        caret-color: transparent;
     }
 
     /* Style to create a horizontal list */
@@ -27,20 +29,21 @@
         list-style-type: none;
         margin: 0;
         padding: 0;
-        /*display: flex;*/
-        flex-wrap: wrap;
         display: inline-block;
+        flex-wrap: wrap;
+        text-align: left;
+        vertical-align: center;
     }
 
     ul.word {
         list-style-type: none;
         margin: 0;
         padding: 0;
-        /*display: flex;*/
         display: inline-block;
+        flex-wrap: wrap;
     }
 
-    ul.horizontal-list li {
+    li {
         text-align: center;
         vertical-align: center;
         display: inline-block;
@@ -85,8 +88,11 @@
         detext.autocomplete = "off"
         detext.id = "de" + i.toString()
         detext.maxLength = 2
-        detext.addEventListener("input", updateValue)
         detext.value = cipher[i][DE]
+        detext.addEventListener('mousedown', focusEnd);
+        detext.addEventListener('focus', focusEnd);
+        detext.addEventListener("input", updateValue)
+        detext.addEventListener("keydown", dePress)
 
 
         const rawtext = document.createElement("input")
@@ -95,7 +101,10 @@
         rawtext.autocomplete = "off"
         rawtext.id = "en" + i.toString()
         rawtext.value = cipher[i][EN]
+        rawtext.addEventListener("mousedown", focusEnd)
+        rawtext.addEventListener('focus', focusEnd);
         rawtext.addEventListener("input", updateKey)
+        rawtext.addEventListener("keydown", dePress)
 
         if ((!cipher[i][EN].match(/[a-z]/i)) && cipher[i][EN] !== "") {
             detext.disabled = true
@@ -184,24 +193,14 @@
 
         // focus
         let to_focus
-        if (value === "") {
-            if (i === 0)
-            {
-                to_focus = i
-            } else {
-                to_focus = i - 1
-            }
-        } else {
+        if (value !== "") {
             if (i === cipher.length-1) {
                 to_focus = i
             } else {
-                to_focus = i + 1
+                to_focus = findNext(i)
             }
-        }
-
-        if (document.getElementById("de" + to_focus).disabled)
-        {
-            to_focus++
+        } else {
+            to_focus = i
         }
 
         document.getElementById("de" + to_focus).focus()
@@ -229,6 +228,62 @@
         // refocus
         document.getElementById("en" + i).focus()
 
+    }
+
+    function dePress(event) {
+        const type = event.target.id.slice(0,2)
+        const i = parseInt(event.target.id.slice(2))
+        // console.log(event.key)
+
+        if ((event.key === "ArrowLeft") && i !== 0) {
+            const focus = findPrev(i)
+            document.getElementById(type + (focus)).focus()
+
+        } else if (event.key === "ArrowRight" && i !== cipher.length-1) {
+            const focus = findNext(i)
+            document.getElementById(type + (focus)).focus()
+
+        } else if (event.key === "ArrowDown" && type === "de") {
+            document.getElementById("en" + i).focus()
+        } else if (event.key === "ArrowUp" && type === "en") {
+            document.getElementById("de" + i).focus()
+        }
+    }
+
+    function findPrev (i) {
+        if (i === 0) {
+            return 0;
+        } else {
+
+            let result = i - 1
+            while (result !== 0 && document.getElementById("de" + result).disabled) {
+                result--
+            }
+
+            return result
+        }
+    }
+    function findNext (i) {
+        if (i === cipher.length-1) {
+            return i;
+        } else {
+
+            let result = i + 1
+            while (result !== cipher.length-1 && document.getElementById("de" + result).disabled) {
+                result++
+            }
+
+            return result
+        }
+    }
+
+    function focusEnd (event) {
+        // this just works. no idea why. found the solution by just f*cking around :)
+        setTimeout(function(){
+            const temp = event.target.value;
+            event.target.value = "";
+            event.target.value = temp;
+        }, 0);
     }
 
 </script>
