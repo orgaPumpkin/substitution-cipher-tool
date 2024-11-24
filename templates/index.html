@@ -6,7 +6,11 @@
 </head>
 <style>
 
-    html,body {
+    body,html{
+        margin:0;
+        padding:0;
+        width:100%;
+        height:100%;
         background-color: #1e1e1e;
         text-align: center;
     }
@@ -16,12 +20,12 @@
         vert-align: top;
         background-color: transparent;
         color: white;
-        width: 35px;
+        width: 40px;
         height: 40px;
         font-weight: bold;
         font-size: x-large;
         text-align: center;
-        margin: 4px;
+        margin: 0;
         border-width: 0;
         border-bottom-width: 4px;
         border-collapse: collapse;
@@ -35,17 +39,15 @@
     input.detext.highlight {
         border-color: dodgerblue;
         border-bottom-width: 6px;
-        /*height: 38px;*/
     }
     input.detext.selected {
         border-color: limegreen;
         border-bottom-width: 8px;
-        /*height: 37px;*/
     }
 
     input.rawtext {
         background-color: transparent;
-        color: lightgray;
+        color: gray;
         width: 35px;
         height: 35px;
         text-align: center;
@@ -57,14 +59,14 @@
 
     /* Style to create a horizontal list */
     ul.horizontal-list {
-        width: 95%;
         list-style-type: none;
-        margin: 0;
+        margin: 5% 5% 0;
+        width: fit-content(95%);
         padding: 0;
-        display: inline-block;
+        justify-content: center;
+        display: flex;
         flex-wrap: wrap;
         text-align: center;
-        /*vertical-align: center;*/
     }
 
     ul.word {
@@ -73,11 +75,11 @@
         padding: 0;
         display: inline-block;
         flex-wrap: wrap;
+        text-align: center;
     }
 
     li.horizontal-list {
         text-align: center;
-        /*vertical-align: center;*/
         display: inline-block;
     }
 
@@ -99,16 +101,15 @@
 
 </style>
 <body>
-<div style="float:left; width: 80%">
-    <br><br>
-    <ul class="horizontal-list" id="cipher-box"></ul>
-    <br>
-    <button id="add" onclick="addChar()">+</button>
+<div style="display: flex;">
+    <div style="flex-grow: 1; text-align: center;">
+        <ul class="horizontal-list" id="cipher-box"></ul>
+        <button id="add" onclick="addChar()" style="text-align: center">+</button>
+    </div>
+    <div style="flex-shrink: 1; min-width: fit-content;">
+        <ul id="keys-box" style="list-style-type: none; margin: 35px 35px 35px 0; padding-left: 0;"></ul>
+    </div>
 </div>
-<div style="float:right; margin-right: 5%">
-    <ul id="keys-box" style="list-style-type: none;"></ul>
-</div>
-
 </body>
 </html>
 <script>
@@ -205,6 +206,7 @@
         cipher_box.innerHTML = ""
 
         let item = document.createElement("li")
+        item.style.width = "fit-content"
         let word = document.createElement("ul")
         word.className = "word"
         item.appendChild(word)
@@ -214,13 +216,16 @@
             createItem(i, word)
 
             if (cipher[i][EN] === "\n") {
-                cipher_box.appendChild(document.createElement("br"))
+                const linebreak = document.createElement("li")
+                linebreak.style.flexBasis = "100%";
+                linebreak.style.height = 0;
+                cipher_box.appendChild(linebreak)
             }
 
             if ([" ","\n"].includes(cipher[i][EN]))
             {
                 item = document.createElement("li")
-                item.className = "horizontal-list"
+                item.style.width = "fit-content"
                 word = document.createElement("ul")
                 word.className = "word"
                 item.appendChild(word)
@@ -233,6 +238,7 @@
         const keysKeys = Object.keys(keys).toSorted()
         for (const i in keysKeys) {
             const keyI = document.createElement("li")
+
             const rawtext = document.createElement("input")
             rawtext.type = "text"
             rawtext.className = "rawtext"
@@ -247,6 +253,7 @@
             detext.id = "va" + i.toString()
             detext.maxLength = 2
             detext.value = keys[keysKeys[i]]
+            detext.style.margin = "4px"
             detext.addEventListener("mousedown", focusEnd);
             detext.addEventListener("focus", highlight);
             detext.addEventListener("focusout", removeHighlight);
@@ -255,7 +262,8 @@
             detext.addEventListener("paste", e => e.preventDefault());
 
             keyI.appendChild(rawtext)
-            const sep = document.createElement("p")
+            const sep = document.createElement("b")
+            sep.style.whiteSpace = "show"
             sep.innerText = ": "
             sep.style.fontSize = "x-large"
             sep.style.display = "inline-block"
@@ -269,13 +277,17 @@
     }
 
     function updateCipher() {
-        // clean Enter at start
+        // clean Enter at start and end
         while (cipher[0][EN] === "\n") {
-            // update cipher
             if (cipher.length === 1) {
                 cipher = [["",""]]
             } else {
                 cipher.splice(0, 1)
+            }
+        }
+        while (cipher[cipher.length-1][EN] === "\n") {
+            if (cipher.length !== 1) {
+                cipher.splice(cipher.length-1, 1)
             }
         }
 
@@ -346,12 +358,14 @@
         event.target.value = event.target.value.toUpperCase()
         const value = event.target.value
 
-        if (value === "")
-        {
+        if (value === "") {
             cipher[i][EN] = ""
 
-        } else {
+        } else if (!cipher[i][EN].match(/[a-z]/i)) {
+            cipher[i][DE] = value
+            cipher[i][EN] = value
 
+        } else {
             if (!value in keys) {
                 keys[value] = ""
             }
@@ -367,7 +381,7 @@
 
     function keyPress(event) {
         const type = event.target.id.slice(0,2)
-        const i = parseInt(event.target.id.slice(2))
+        let i = parseInt(event.target.id.slice(2))
         // console.log(event.key)
 
         if ((event.key === "ArrowLeft") && i !== 0) {
@@ -383,9 +397,17 @@
         } else if (event.key === "ArrowUp" && type === "en") {
             document.getElementById("de" + i).focus()
 
-        } else if (event.key === "Enter" && type === "en" && event.target.value === "") {
-            cipher[i][EN] = "\n"
+        } else if (event.key === "Enter" && type === "en") {
+            if (event.target.value === "")
+            {
+                cipher[i][EN] = "\n"
+            } else {
+                i++
+                cipher.splice(i, 0, ['\n', ''])
+            }
+            cipher.splice(i+1, 0, ['', ''])
             updateCipher()
+            document.getElementById("en"+ (i+1)).focus()
 
         } else if (event.key === "Delete" && type === "en") {
             if (cipher.length !== 1) {
