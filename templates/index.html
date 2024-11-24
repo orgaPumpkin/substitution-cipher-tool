@@ -104,7 +104,7 @@
 <div style="display: flex;">
     <div style="flex-grow: 1; text-align: center;">
         <ul class="horizontal-list" id="cipher-box"></ul>
-        <button id="add" onclick="addChar()" style="text-align: center">+</button>
+<!--        <button id="add" onclick="addChar()" style="text-align: center">+</button>-->
     </div>
     <div style="flex-shrink: 1; min-width: fit-content;">
         <ul id="keys-box" style="list-style-type: none; margin: 35px 35px 35px 0; padding-left: 0;"></ul>
@@ -136,7 +136,6 @@
     function addChar() {
         cipher.splice(cipher.length, 0, ['', ''])
         updateCipher()
-        document.getElementById('en'+(cipher.length-1)).focus()
     }
 
     function rawPaste(event) {
@@ -388,16 +387,24 @@
             const focus = findPrev(i, (type !== "va"))
             document.getElementById(type + (focus)).focus()
 
-        } else if (event.key === "ArrowRight" && i !== cipher.length-1) {
-            const focus = findNext(i, (type !== "va"))
+        } else if (event.key === "ArrowRight") {
+            let focus = findNext(i, (type !== "va"))
+
+            // create new char if at the end
+            if (type === "en" && focus === i) {
+                addChar()
+                focus++
+            }
             document.getElementById(type + (focus)).focus()
 
         } else if (event.key === "ArrowDown" && type === "de") {
             document.getElementById("en" + i).focus()
         } else if (event.key === "ArrowUp" && type === "en") {
-            document.getElementById("de" + i).focus()
+            if (!document.getElementById("de" + i).disabled) {
+                document.getElementById("de" + i).focus()
+            }
 
-        } else if (event.key === "Enter" && type === "en") {
+        } else if (event.key === "Enter" && type === "en" && !(event.target.value === "" && i===0)) {
             if (event.target.value === "")
             {
                 cipher[i][EN] = "\n"
@@ -412,8 +419,12 @@
         } else if (event.key === "Delete" && type === "en") {
             if (cipher.length !== 1) {
                 cipher.splice(i, 1)
+                const prevLen = cipher.length
                 updateCipher()
-                document.getElementById("en" + findPrev(i)).focus()
+                if (prevLen !== cipher.length) {
+                    i--
+                }
+                document.getElementById("en" + findPrev(i, false)).focus()
             }
         }
     }
