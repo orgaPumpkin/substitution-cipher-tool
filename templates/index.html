@@ -237,7 +237,7 @@
         const keysKeys = Object.keys(keys).toSorted()
         for (const i in keysKeys) {
             const keyI = document.createElement("li")
-
+            keyI.style.verticalAlign = "middle"
             const rawtext = document.createElement("input")
             rawtext.type = "text"
             rawtext.className = "rawtext"
@@ -252,7 +252,11 @@
             detext.id = "va" + i.toString()
             detext.maxLength = 2
             detext.value = keys[keysKeys[i]]
-            detext.style.margin = "4px"
+            // detext.style.margin = "4px"
+            detext.style.borderBottomWidth = 0
+            detext.style.width = "50px"
+            detext.style.borderLeftWidth = "6px"
+            detext.style.borderCollapse = "none"
             detext.addEventListener("mousedown", focusEnd);
             detext.addEventListener("focus", highlight);
             detext.addEventListener("focusout", removeHighlight);
@@ -261,14 +265,6 @@
             detext.addEventListener("paste", e => e.preventDefault());
 
             keyI.appendChild(rawtext)
-            const sep = document.createElement("b")
-            sep.style.whiteSpace = "show"
-            sep.innerText = ": "
-            sep.style.fontSize = "x-large"
-            sep.style.display = "inline-block"
-            sep.style.color = "white"
-            sep.style.margin = 0
-            keyI.appendChild(sep)
             keyI.appendChild(detext)
             keys_box.appendChild(keyI)
 
