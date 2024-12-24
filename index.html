@@ -113,17 +113,35 @@
 </body>
 </html>
 <script>
-
     const EN = 0
     const DE = 1
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const enTXT = urlParams.get('en');
+    const deTXT = urlParams.get('de');
+    const keysParam = (urlParams.get('keys') ? urlParams.get('keys').split(",") : []);
+
+    let cipher = []
+
+    if (enTXT !== null) {
+        for (let i = 0; i < enTXT.length; i++) {
+            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]), deTXT[i]]);
+        }
+    }  else {
+        cipher = [["",""]]
+    }
+
+    let keys = {}
+    if (keysParam.length !== 0) {
+        for (let i = 0; i < keysParam.length; i++) {
+            let param = keysParam[i].split(":")
+            keys[param[0]] = param[1]
+        }
+    }
 
     const cipher_box = document.getElementById("cipher-box")
     const keys_box = document.getElementById("keys-box")
 
-    let cipher = []
-    let keys = {}
-
-    cipher = [["",""]]
     updateCipher();
 
     function addCipher(ciphertext, s) {
