@@ -126,7 +126,7 @@
 
     if (enTXT !== null) {
         for (let i = 0; i < enTXT.length; i++) {
-            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]), deTXT[i]]);
+            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]), (!deTXT || deTXT.length < i || deTXT[i] === "|" ? "" : deTXT[i])]);
         }
     }  else {
         cipher = [["",""]]
