@@ -5,6 +5,9 @@
     <title>substitution cipher tool</title>
 </head>
 <style>
+    :root {
+        color-scheme : dark;
+    }
 
     body,html{
         margin:0;
@@ -13,6 +16,8 @@
         height:100%;
         background-color: #1e1e1e;
         text-align: center;
+        vertical-align: center;
+        /*overflow: clip;*/
     }
 
     input.detext {
@@ -57,57 +62,53 @@
         border-width: 0;
     }
 
-    /* Style to create a horizontal list */
     ul.horizontal-list {
         list-style-type: none;
-        margin: 5% 5% 0;
-        width: fit-content(95%);
+        margin: 0;
         padding: 0;
         justify-content: center;
         display: flex;
+        align-content: flex-start;
         flex-wrap: wrap;
         text-align: center;
+        overflow: auto;
+        height: 100%;
     }
 
     ul.word {
         list-style-type: none;
         margin: 0;
         padding: 0;
+        width: fit-content;
         display: inline-block;
-        flex-wrap: wrap;
         text-align: center;
     }
 
     li.horizontal-list {
+        margin: 0;
         text-align: center;
         display: inline-block;
     }
 
-    #add {
-        margin: 4px;
-        width: 40px;
-        height: 40px;
-        background-color: transparent;
-        border-color: transparent;
-        border-radius: 5px;
-        color: green;
-        font-size: 30px;
-        text-align: center;
-        vertical-align: center;
-    }
-    #add:hover {
-        color: springgreen;
+    div#keys-box {
+        min-width: 100px;
+        width: fit-content;
+        list-style-type: none;
+        padding-left: 0;
+        display: grid;
+        grid-auto-flow: row;
+        box-sizing: border-box;
+        vertical-align: center
     }
 
 </style>
 <body>
-<div style="display: flex;">
-    <div style="flex-grow: 1; text-align: center;">
+<div id="main-div" style="display: flex; overflow: hidden; height: 100%; padding: 15px; box-sizing: border-box;">
+    <div style="flex-grow: 1; flex-shrink: 1;">
         <ul class="horizontal-list" id="cipher-box"></ul>
-<!--        <button id="add" onclick="addChar()" style="text-align: center">+</button>-->
     </div>
-    <div style="flex-shrink: 1; min-width: fit-content;">
-        <ul id="keys-box" style="list-style-type: none; margin: 35px 35px 35px 0; padding-left: 0;"></ul>
+    <div id="keys-div" style="flex-shrink: 1; position: sticky; height: 100%; box-sizing: border-box; vertical-align: center">
+        <div id="keys-box"></div>
     </div>
 </div>
 </body>
@@ -224,6 +225,7 @@
 
         let item = document.createElement("li")
         item.style.width = "fit-content"
+        item.style.height = "fit-content"
         let word = document.createElement("ul")
         word.className = "word"
         item.appendChild(word)
@@ -243,6 +245,7 @@
             {
                 item = document.createElement("li")
                 item.style.width = "fit-content"
+                item.style.height = "fit-content"
                 word = document.createElement("ul")
                 word.className = "word"
                 item.appendChild(word)
@@ -251,11 +254,14 @@
         }
 
         // show keys
+        let column = 1
+        let row = 1
         keys_box.innerHTML = ""
         const keysKeys = Object.keys(keys).toSorted()
         for (const i in keysKeys) {
             const keyI = document.createElement("li")
             keyI.style.verticalAlign = "middle"
+            keyI.style.minWidth = "100px"
             const rawtext = document.createElement("input")
             rawtext.type = "text"
             rawtext.className = "rawtext"
@@ -286,6 +292,16 @@
             keyI.appendChild(detext)
             keys_box.appendChild(keyI)
 
+            if (document.getElementById("keys-div").clientHeight <= keys_box.clientHeight) {
+                column++
+                row = 1;
+            }
+            keyI.style.gridColumnStart = column
+            keyI.style.gridColumnEnd = column
+            keyI.style.gridRowStart = row
+            keyI.style.gridRowEnd = row
+
+            row++
         }
     }
 
