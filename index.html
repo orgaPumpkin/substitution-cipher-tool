@@ -126,7 +126,7 @@
 
     if (enTXT !== null) {
         for (let i = 0; i < enTXT.length; i++) {
-            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]), (!deTXT || deTXT.length < i || deTXT[i] === "|" ? "" : deTXT[i])]);
+            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]).toUpperCase(), (!deTXT || deTXT.length < i || deTXT[i] === "|" ? "" : deTXT[i]).toUpperCase()]);
         }
     }  else {
         cipher = [["",""]]
@@ -136,7 +136,7 @@
     if (keysParam.length !== 0) {
         for (let i = 0; i < keysParam.length; i++) {
             let param = keysParam[i].split(":")
-            keys[param[0]] = param[1]
+            keys[param[0].toUpperCase()] = param[1].toUpperCase()
         }
     }
 
