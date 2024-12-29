@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>substitution cipher tool</title>
+    <script src="https://kit.fontawesome.com/82a08dbe54.js" crossorigin="anonymous"></script>
 </head>
 <style>
     :root {
@@ -103,7 +104,9 @@
         position: sticky;
         height: 100%;
         box-sizing: border-box;
-        vertical-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     div#keys-box {
@@ -114,7 +117,17 @@
         display: grid;
         grid-auto-flow: row;
         box-sizing: border-box;
-        vertical-align: center
+        flex-shrink: 1;
+    }
+
+    div#controls-box {
+        height: fit-content;
+        min-height: 50px;
+    }
+
+    button#copy-url {
+        height: 40px;
+        width: 40px;
     }
 
 </style>
@@ -125,7 +138,11 @@
     </div>
     <div id="right-div">
         <div id="keys-box"></div>
-        <div id="controls-box"></div>
+        <div id="controls-box">
+            <button id="copy-url" title="Copy URL for your cipher" onclick="copyURL()">
+                <i class="fa-solid fa-share"></i>
+            </button>
+        </div>
     </div>
 </div>
 </body>
@@ -243,6 +260,7 @@
         let keyI = document.createElement("li")
         keyI.style.verticalAlign = "middle"
         keyI.style.minWidth = "100px"
+        keyI.style.height = "fit-content"
         const rawtext = document.createElement("input")
         rawtext.type = "text"
         rawtext.className = "rawtext"
@@ -317,7 +335,7 @@
             const keyI = createKeyValue(i)
             keys_box.appendChild(keyI)
 
-            if (document.getElementById("right-div").clientHeight <= keys_box.clientHeight) {
+            if (keys_box.clientHeight > document.getElementById("right-div").clientHeight - document.getElementById("controls-box").clientHeight) {
                 column++
                 row = 1
             }
@@ -568,6 +586,44 @@
                 document.getElementById("va" + i).className = "detext"
             }
         }
+    }
+
+    function copyURL() {
+        let en = ""
+        let de = ""
+        for (let i in cipher) {
+            en += (cipher[i][EN] === "" ? "|" : cipher[i][EN])
+            de += (cipher[i][DE] === "" ? "|" : cipher[i][DE])
+        }
+
+        for (let i = de.length - 1; i >= 0 && de[i] === "|"; i--) {
+            de = de.slice(0, i)
+        }
+
+        let keysParam = ""
+        const keysKeys = Object.keys(keys).toSorted()
+        for (let i in keysKeys) {
+            if (keys[keysKeys[i]] !== "") {
+                keysParam += keysKeys[i] + ":" + keys[keysKeys[i]] + ","
+            }
+        }
+        if (keysParam.length !== 0) {
+            keysParam = keysParam.slice(0, -1)
+        }
+
+
+        let result = window.location.host + window.location.pathname
+        if (en.length !== 0) {
+            result += "/?en=" + encodeURIComponent(en)
+            if (de.length !== 0) {
+                result += "&de=" + encodeURIComponent(de)
+                if (keysParam.length !== 0) {
+                    result += "&keys=" + encodeURIComponent(keysParam)
+                }
+            }
+        }
+
+        navigator.clipboard.writeText(result)
     }
 
 </script>
