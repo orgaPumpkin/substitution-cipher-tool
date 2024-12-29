@@ -90,6 +90,22 @@
         display: inline-block;
     }
 
+    div#main-div {
+        display: flex;
+        overflow: hidden;
+        height: 100%;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+
+    div#right-div {
+        flex-shrink: 1;
+        position: sticky;
+        height: 100%;
+        box-sizing: border-box;
+        vertical-align: center;
+    }
+
     div#keys-box {
         min-width: 100px;
         width: fit-content;
@@ -103,12 +119,13 @@
 
 </style>
 <body>
-<div id="main-div" style="display: flex; overflow: hidden; height: 100%; padding: 15px; box-sizing: border-box;">
-    <div style="flex-grow: 1; flex-shrink: 1;">
-        <ul class="horizontal-list" id="cipher-box"></ul>
+<div id="main-div">
+    <div id="left-div" style="flex-grow: 1; flex-shrink: 1;">
+        <ul id="cipher-box" class="horizontal-list"></ul>
     </div>
-    <div id="keys-div" style="flex-shrink: 1; position: sticky; height: 100%; box-sizing: border-box; vertical-align: center">
+    <div id="right-div">
         <div id="keys-box"></div>
+        <div id="controls-box"></div>
     </div>
 </div>
 </body>
@@ -220,21 +237,59 @@
 
     }
 
+    function createKeyValue(i) {
+        const keysKeys = Object.keys(keys).toSorted()
+
+        let keyI = document.createElement("li")
+        keyI.style.verticalAlign = "middle"
+        keyI.style.minWidth = "100px"
+        const rawtext = document.createElement("input")
+        rawtext.type = "text"
+        rawtext.className = "rawtext"
+        rawtext.disabled = true
+        rawtext.id = "ke" + i.toString()
+        rawtext.value = keysKeys[i]
+
+        const detext = document.createElement("input")
+        detext.type = "text"
+        detext.className = "detext"
+        detext.autocomplete = "off"
+        detext.id = "va" + i.toString()
+        detext.maxLength = 2
+        detext.value = keys[keysKeys[i]]
+        // detext.style.margin = "4px"
+        detext.style.borderBottomWidth = 0
+        detext.style.width = "50px"
+        detext.style.borderLeftWidth = "6px"
+        detext.style.borderCollapse = "none"
+        detext.addEventListener("mousedown", focusEnd);
+        detext.addEventListener("focus", highlight);
+        detext.addEventListener("focusout", removeHighlight);
+        detext.addEventListener("input", updateValue)
+        detext.addEventListener("keydown", keyPress)
+        detext.addEventListener("paste", e => e.preventDefault());
+
+        keyI.appendChild(rawtext)
+        keyI.appendChild(detext)
+        return keyI
+    }
+
     function showCipher() {
         cipher_box.innerHTML = ""
 
-        let item = document.createElement("li")
-        item.style.width = "fit-content"
-        item.style.height = "fit-content"
-        let word = document.createElement("ul")
-        word.className = "word"
-        item.appendChild(word)
-        cipher_box.appendChild(item)
+        let wordItem = document.createElement("li")
+        wordItem.style.width = "fit-content"
+        wordItem.style.height = "fit-content"
+        let wordList = document.createElement("ul")
+        wordList.className = "word"
+        wordItem.appendChild(wordList)
+        cipher_box.appendChild(wordItem)
 
         for (let i=0; i < cipher.length; i++) {
-            createItem(i, word)
+            createItem(i, wordList)
 
             if (cipher[i][EN] === "\n") {
+                // add linebreak
                 const linebreak = document.createElement("li")
                 linebreak.style.flexBasis = "100%";
                 linebreak.style.height = 0;
@@ -243,13 +298,14 @@
 
             if ([" ","\n"].includes(cipher[i][EN]))
             {
-                item = document.createElement("li")
-                item.style.width = "fit-content"
-                item.style.height = "fit-content"
-                word = document.createElement("ul")
-                word.className = "word"
-                item.appendChild(word)
-                cipher_box.appendChild(item)
+                // create new word
+                wordItem = document.createElement("li")
+                wordItem.style.width = "fit-content"
+                wordItem.style.height = "fit-content"
+                wordList = document.createElement("ul")
+                wordList.className = "word"
+                wordItem.appendChild(wordList)
+                cipher_box.appendChild(wordItem)
             }
         }
 
@@ -257,44 +313,13 @@
         let column = 1
         let row = 1
         keys_box.innerHTML = ""
-        const keysKeys = Object.keys(keys).toSorted()
-        for (const i in keysKeys) {
-            const keyI = document.createElement("li")
-            keyI.style.verticalAlign = "middle"
-            keyI.style.minWidth = "100px"
-            const rawtext = document.createElement("input")
-            rawtext.type = "text"
-            rawtext.className = "rawtext"
-            rawtext.disabled = true
-            rawtext.id = "ke" + i.toString()
-            rawtext.value = keysKeys[i]
-
-            const detext = document.createElement("input")
-            detext.type = "text"
-            detext.className = "detext"
-            detext.autocomplete = "off"
-            detext.id = "va" + i.toString()
-            detext.maxLength = 2
-            detext.value = keys[keysKeys[i]]
-            // detext.style.margin = "4px"
-            detext.style.borderBottomWidth = 0
-            detext.style.width = "50px"
-            detext.style.borderLeftWidth = "6px"
-            detext.style.borderCollapse = "none"
-            detext.addEventListener("mousedown", focusEnd);
-            detext.addEventListener("focus", highlight);
-            detext.addEventListener("focusout", removeHighlight);
-            detext.addEventListener("input", updateValue)
-            detext.addEventListener("keydown", keyPress)
-            detext.addEventListener("paste", e => e.preventDefault());
-
-            keyI.appendChild(rawtext)
-            keyI.appendChild(detext)
+        for (let i = 0; i < Object.keys(keys).length; i++) {
+            const keyI = createKeyValue(i)
             keys_box.appendChild(keyI)
 
-            if (document.getElementById("keys-div").clientHeight <= keys_box.clientHeight) {
+            if (document.getElementById("right-div").clientHeight <= keys_box.clientHeight) {
                 column++
-                row = 1;
+                row = 1
             }
             keyI.style.gridColumnStart = column
             keyI.style.gridColumnEnd = column
@@ -304,6 +329,7 @@
             row++
         }
     }
+    window.onresize = showCipher;
 
     function updateCipher() {
         // clean Enter at start and end
