@@ -170,7 +170,8 @@
 
     if (enTXT !== null) {
         for (let i = 0; i < enTXT.length; i++) {
-            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]).toUpperCase(), (!deTXT || deTXT.length < i || deTXT[i] === "|" ? "" : deTXT[i]).toUpperCase()]);
+            console.log(enTXT[i]+ i)
+            cipher.push([(enTXT[i] === "|" ? "" : enTXT[i]).toUpperCase(), (!deTXT || deTXT.length-1 < i || deTXT[i] === "|" ? "" : deTXT[i]).toUpperCase()]);
         }
     }  else {
         cipher = [["",""]]
@@ -413,9 +414,11 @@
         } else {
             const values = Object.values(keys)
             if (!values.includes(value) || value === "") {
-                cipher[i][DE] = value
+                // update char in cipher only if it is not in keys
+                if (type === "de") {
+                    cipher[i][DE] = value
+                }
                 keys[enC.value] = value
-                // TODO: error message popup
             }
         }
 
@@ -465,7 +468,6 @@
     function keyPress(event) {
         const type = event.target.id.slice(0,2)
         let i = parseInt(event.target.id.slice(2))
-        // console.log(event.key)
 
         if ((event.key === "ArrowLeft") && i !== 0) {
             const focus = findPrev(i, (type !== "va"))
@@ -602,8 +604,13 @@
         let en = ""
         let de = ""
         for (let i in cipher) {
-            en += (cipher[i][EN] === "" ? "|" : cipher[i][EN])
-            de += (cipher[i][DE] === "" ? "|" : cipher[i][DE])
+            if (cipher[i][EN].match(/[a-z]/i) || cipher[i][EN] === "") {
+                en += (cipher[i][EN] === "" ? "|" : cipher[i][EN])
+                de += (cipher[i][DE] === "" ? "|" : cipher[i][DE])
+            } else {
+                en += cipher[i][EN]
+                de += cipher[i][EN]
+            }
         }
 
         for (let i = de.length - 1; i >= 0 && de[i] === "|"; i--) {
@@ -621,10 +628,9 @@
             keysParam = keysParam.slice(0, -1)
         }
 
-
         let result = window.location.host + window.location.pathname
         if (en.length !== 0) {
-            result += "/?en=" + encodeURIComponent(en)
+            result += "?en=" + encodeURIComponent(en)
             if (de.length !== 0) {
                 result += "&de=" + encodeURIComponent(de)
                 if (keysParam.length !== 0) {
