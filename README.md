@@ -4,6 +4,9 @@ This is a simple tool that aims at making it easier to decrypt text using a subs
 
 Notice: The tool currently only supports devices with a keyboard, and is not optimized for mobile devices.
 
+This project is my first deep dive into web development (HTML, JS and CSS), and I've learned a lot while working on it.
+There are many things I would do differently if I were to start over, but I'm pretty happy with the result.
+
 ## Usage
 A cipher is built from many single characters, each marked with a horizontal line.
 Below the line is the encrypted character, and above the line is the decrypted character.
@@ -29,3 +32,6 @@ You can also use this display to manually assign characters to each other.
 ### Cipher Sharing
 Use the share button on the bottom right to share your cipher with others, either solved or unsolved.
 The button will copy a custom link to your clipboard, which you can share with others. 
+
+## Plans
+Next, I plan to make a backend for the tool, which will run an algorithm to automatically decrypt ciphers.
